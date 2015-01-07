@@ -4,8 +4,7 @@
         android:id="@+id/enable_check_box"
         android:key="enableCheckbox"
         android:title="Enable Notification"
-        android:summary="Enables Meh Notification"
-        android:defaultValue="false"/>
+        android:summary="Enables Meh Notification"/>
 
     <!-- NOTE: EditTextPreference accepts EditText attributes. -->
     <!-- NOTE: EditTextPreference's summary should be set to its value by the activity code. -->
@@ -20,8 +19,9 @@
 
     <ermacaz.com.mehfukubukuro.TimePreference
         android:id="@+id/meh_update_time"
-        android:key="update_time_key"
-        android:title="Time to check Meh"/>
+        android:key="updateTimeKey"
+        android:title="Time to check Meh"
+        android:defaultValue="12:00 AM"/>
 
 
     <!-- NOTE: Hide buttons to simplify the UI. Users can touch outside the dialog to

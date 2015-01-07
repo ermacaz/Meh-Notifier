@@ -5,9 +5,11 @@ import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.media.Ringtone;
 import android.media.RingtoneManager;
+import android.media.audiofx.BassBoost;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -53,25 +55,39 @@ public class SettingsActivity extends PreferenceActivity {
 
     private PendingIntent pendingIntent;
     private AlarmManager manager;
+    private SharedPreferences mPreferences;
+    private boolean mEnabled;
+    private CharSequence mTime;
+    private TimePreference mTimePreference;
+
 
 
     @Override
     protected void onPostCreate(Bundle savedInstanceState) {
         super.onPostCreate(savedInstanceState);
 
+        mPreferences = PreferenceManager.getDefaultSharedPreferences(SettingsActivity.this);
         setupSimplePreferencesScreen();
 
         //get broadcast alarm
         Intent alarmIntent = new Intent(SettingsActivity.this, AlarmReceiver.class);
         pendingIntent = PendingIntent.getBroadcast(SettingsActivity.this, 0, alarmIntent, PendingIntent.FLAG_CANCEL_CURRENT);
-        Calendar calendar = Calendar.getInstance();
 
     }
 
     public void startAlarm() {
+        if (!mEnabled)
+        {
+            return;
+        }
         manager = (AlarmManager)getSystemService(Context.ALARM_SERVICE);
-        int interval = 60000;
-        manager.setRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(), interval, pendingIntent);
+        Calendar cal = mTimePreference.getCalendar();
+
+        if (cal.getTimeInMillis() < System.currentTimeMillis()) {
+            cal.add(Calendar.DAY_OF_YEAR, 1);
+        }
+
+        manager.setRepeating(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis(), AlarmManager.INTERVAL_DAY, pendingIntent);
     }
 
     public void stopAlarm() {
@@ -95,6 +111,45 @@ public class SettingsActivity extends PreferenceActivity {
 
         // Add 'general' preferences.
         addPreferencesFromResource(R.xml.pref_general);
+        mEnabled =  mPreferences.getBoolean("enabled", false);
+        final CheckBoxPreference enableBox = (CheckBoxPreference)getPreferenceManager().findPreference("enableCheckbox");
+        enableBox.setChecked(mEnabled);
+
+        enableBox.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+            @Override
+            public boolean onPreferenceChange(Preference preference, Object newValue) {
+                SharedPreferences.Editor editor = mPreferences.edit();
+                editor.putBoolean("enabled", (boolean)newValue);
+                editor.commit();
+                mEnabled = (boolean)newValue;
+                if (mEnabled)
+                {
+                    startAlarm();
+                    Toast.makeText(getApplicationContext(), "Notification on", Toast.LENGTH_SHORT).show();
+                }
+                if (!mEnabled)
+                {
+                    stopAlarm();
+                    Toast.makeText(getApplicationContext(), "Notification off", Toast.LENGTH_SHORT).show();
+                }
+                return true;
+            }
+        });
+
+
+        mTimePreference = (TimePreference)getPreferenceManager().findPreference("updateTimeKey");
+        mTime = mTimePreference.getSummary();
+        mTimePreference.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+            @Override
+            public boolean onPreferenceChange(Preference preference, Object newValue) {
+                SharedPreferences.Editor editor = mPreferences.edit();
+                editor.putString("lookup_time", mTimePreference.getSummary().toString());
+                editor.commit();
+                return true;
+            }
+        });
+
+
 
         // Add 'notifications' preferences, and a corresponding header.
         PreferenceCategory fakeHeader = new PreferenceCategory(this);
@@ -117,22 +172,6 @@ public class SettingsActivity extends PreferenceActivity {
         bindPreferenceSummaryToValue(findPreference("sync_frequency"));
 
         CheckBoxPreference enablePref = (CheckBoxPreference)getPreferenceManager().findPreference("enableCheckbox");
-
-        enablePref.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
-            public boolean onPreferenceChange(Preference preference, Object newValue) {
-                if (newValue == true)
-                {
-                    startAlarm();
-                    Toast.makeText(getApplicationContext(), "Alarm Started", Toast.LENGTH_SHORT).show();
-                }
-                if (newValue == false)
-                {
-                    stopAlarm();
-                    Toast.makeText(getApplicationContext(), "Alarm Canceled", Toast.LENGTH_SHORT).show();
-                }
-                return true;
-            }
-        });
     }
 
     /**

@@ -1,6 +1,7 @@
 package ermacaz.com.mehfukubukuro;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.res.TypedArray;
 import android.preference.DialogPreference;
 import android.text.format.DateFormat;
@@ -19,6 +20,7 @@ import java.util.GregorianCalendar;
 public class TimePreference extends DialogPreference {
     private Calendar calendar;
     private TimePicker picker = null;
+    private SharedPreferences mPreferences;
 
     public TimePreference(Context ctxt) {
         this(ctxt, null);
@@ -96,4 +98,10 @@ public class TimePreference extends DialogPreference {
         }
         return DateFormat.getTimeFormat(getContext()).format(new Date(calendar.getTimeInMillis()));
     }
+
+    public Calendar getCalendar() {
+        return calendar;
+    }
+
+
 }
