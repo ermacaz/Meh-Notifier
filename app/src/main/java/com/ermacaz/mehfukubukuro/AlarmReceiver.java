@@ -67,13 +67,7 @@ public class AlarmReceiver extends BroadcastReceiver {
                 JSONArray items = deal.getJSONArray("items");
                 String photoUrl = items.getJSONObject(0).getString("photo");
 
-                RemoteViews smallView = new RemoteViews(context.getPackageName(),
-                        R.layout.notification);
-                smallView.setTextViewText(R.id.textView,title);
 
-                RemoteViews expandedView = new RemoteViews(context.getPackageName(),
-                        R.layout.notification_expanded);
-                expandedView.setTextViewText(R.id.notificationTextView, description);
 
                 //new DownloadImageTask(expandedView, smallView).execute(photoUrl);
 
@@ -81,7 +75,7 @@ public class AlarmReceiver extends BroadcastReceiver {
                 try {
                     mBitmap = BitmapFactory.decodeStream(
                             (InputStream) new URL(photoUrl).getContent());
-                    //mBitmap = Bitmap.createScaledBitmap(mBitmap, 100, 100, false);
+                    mBitmap = Bitmap.createScaledBitmap(mBitmap, 150, 150, false);
                 }
                 catch(Exception e) {
                     e.printStackTrace();
@@ -96,6 +90,16 @@ public class AlarmReceiver extends BroadcastReceiver {
                         .setContentTitle(title)
                         .setContentText(description);
                        // .setStyle(pictureStyle);
+
+                RemoteViews smallView = new RemoteViews(context.getPackageName(),
+                        R.layout.notification);
+                smallView.setTextViewText(R.id.textView,title);
+
+                RemoteViews expandedView = new RemoteViews(context.getPackageName(),
+                        R.layout.notification_expanded);
+                expandedView.setTextViewText(R.id.notificationTextView, description);
+                expandedView.setImageViewBitmap(R.id.notificationBigPictureView, mBitmap);
+                //expandedView.setTextViewText(R.id.notificationTextTitleView, title);
 
                 mPreferences = PreferenceManager.getDefaultSharedPreferences(context);
                 boolean enableSound = mPreferences.getBoolean("soundEnabled", false);
