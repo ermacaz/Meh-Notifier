@@ -7,11 +7,14 @@ import android.app.TaskStackBuilder;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
+import android.preference.Preference;
+import android.preference.PreferenceManager;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 import android.widget.ImageView;
@@ -37,6 +40,7 @@ public class AlarmReceiver extends BroadcastReceiver {
     private static final String MEH_API = "6k9OGNDA6zqynKI9QIIe4rfkobKZeCBw";
 
     private ImageView mNotifImageView;
+    private SharedPreferences mPreferences;
     private Bitmap mBitmap;
 
     @Override
@@ -62,11 +66,6 @@ public class AlarmReceiver extends BroadcastReceiver {
                 String description = deal.getString("features");
                 JSONArray items = deal.getJSONArray("items");
                 String photoUrl = items.getJSONObject(0).getString("photo");
-
-                NotificationCompat.BigPictureStyle pictureStyle =
-                        new NotificationCompat.BigPictureStyle();
-                pictureStyle.setBigContentTitle(title);
-                pictureStyle.setSummaryText(description);
 
                 RemoteViews smallView = new RemoteViews(context.getPackageName(),
                         R.layout.notification);
@@ -97,6 +96,18 @@ public class AlarmReceiver extends BroadcastReceiver {
                         .setContentTitle(title)
                         .setContentText(description);
                        // .setStyle(pictureStyle);
+
+                mPreferences = PreferenceManager.getDefaultSharedPreferences(context);
+                boolean enableSound = mPreferences.getBoolean("soundEnabled", false);
+                if (enableSound) {
+                    String ringtoneStr = mPreferences.getString("ringtone", "DEFAULT_SOUND");
+                    mBuilder.setSound(Uri.parse(ringtoneStr));
+                }
+                boolean enableVibrate = mPreferences.getBoolean("vibrateEnabled", false);
+                if (enableVibrate) {
+                    long[] pattern = {500,500,500};
+                    mBuilder.setVibrate(pattern);
+                }
 
                 Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://www.meh.com"));
                 PendingIntent pIntent = PendingIntent.getActivity(context,

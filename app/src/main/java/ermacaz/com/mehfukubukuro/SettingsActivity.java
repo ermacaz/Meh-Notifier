@@ -67,6 +67,7 @@ public class SettingsActivity extends PreferenceActivity {
     protected void onPostCreate(Bundle savedInstanceState) {
         super.onPostCreate(savedInstanceState);
 
+        //allows network calls on main thread - image would not load in time for notification if on separate thread
         if (android.os.Build.VERSION.SDK_INT > 9) {
             StrictMode.ThreadPolicy policy = new     StrictMode.ThreadPolicy.Builder().permitAll().build();
             StrictMode.setThreadPolicy(policy);
@@ -177,10 +178,7 @@ public class SettingsActivity extends PreferenceActivity {
         // Bind the summaries of EditText/List/Dialog/Ringtone preferences to
         // their values. When their values change, their summaries are updated
         // to reflect the new value, per the Android Design guidelines.
-        bindPreferenceSummaryToValue(findPreference("example_text"));
-        bindPreferenceSummaryToValue(findPreference("example_list"));
-        bindPreferenceSummaryToValue(findPreference("notifications_new_message_ringtone"));
-        bindPreferenceSummaryToValue(findPreference("sync_frequency"));
+        bindPreferenceSummaryToValue(findPreference("notifications_ringtone"));
 
         Preference syncPref = (Preference)getPreferenceManager().findPreference("syncNow");
         syncPref.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
@@ -190,6 +188,60 @@ public class SettingsActivity extends PreferenceActivity {
                 return true;
             }
         });
+        CheckBoxPreference soundPreference = (CheckBoxPreference)getPreferenceManager().findPreference("notifications_sound");
+        soundPreference.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+            @Override
+            public boolean onPreferenceChange(Preference preference, Object newValue) {
+                SharedPreferences.Editor editor = mPreferences.edit();
+                editor.putBoolean("soundEnabled", (boolean)newValue);
+                editor.commit();
+                return true;
+            }
+        });
+
+        CheckBoxPreference vibratePreference = (CheckBoxPreference)getPreferenceManager().findPreference("notifications_vibrate");
+        vibratePreference.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+            @Override
+            public boolean onPreferenceChange(Preference preference, Object newValue) {
+                SharedPreferences.Editor editor = mPreferences.edit();
+                editor.putBoolean("vibrateEnabled", (boolean)newValue);
+                editor.commit();
+                return true;
+            }
+        });
+
+        RingtonePreference ringtonePreference = (RingtonePreference)getPreferenceManager().findPreference("notifications_ringtone");
+        ringtonePreference.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+            @Override
+            public boolean onPreferenceChange(Preference preference, Object newValue) {
+                SharedPreferences.Editor editor = mPreferences.edit();
+                editor.putString("ringtone", (String)newValue);
+                editor.commit();
+
+                //update ui
+                String stringValue = newValue.toString();
+                if (TextUtils.isEmpty(stringValue)) {
+                    // Empty values correspond to 'silent' (no ringtone).
+                    preference.setSummary(R.string.pref_ringtone_silent);
+
+                } else {
+                    Ringtone ringtone = RingtoneManager.getRingtone(
+                            preference.getContext(), Uri.parse(stringValue));
+
+                    if (ringtone == null) {
+                        // Clear the summary if there was a lookup error.
+                        preference.setSummary(null);
+                    } else {
+                        // Set the summary to reflect the new ringtone display
+                        // name.
+                        String name = ringtone.getTitle(preference.getContext());
+                        preference.setSummary(name);
+                    }
+                }
+                return true;
+            }
+        });
+
     }
 
     /**

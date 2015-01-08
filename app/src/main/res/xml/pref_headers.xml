@@ -9,7 +9,4 @@
         android:fragment="ermacaz.com.mehfukubukuro.SettingsActivity$NotificationPreferenceFragment"
         android:title="@string/pref_header_notifications" />
 
-    <header android:fragment="ermacaz.com.mehfukubukuro.SettingsActivity$DataSyncPreferenceFragment"
-        android:title="@string/pref_header_data_sync" />
-
 </preference-headers>
