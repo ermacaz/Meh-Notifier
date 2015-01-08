@@ -21,7 +21,7 @@
         android:id="@+id/meh_update_time"
         android:key="updateTimeKey"
         android:title="Time to check Meh"
-        android:defaultValue="12:00 AM"/>
+        android:defaultValue="0"/>
 
 
     <!-- NOTE: Hide buttons to simplify the UI. Users can touch outside the dialog to

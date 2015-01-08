@@ -13,6 +13,7 @@ import android.media.audiofx.BassBoost;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.StrictMode;
 import android.preference.CheckBoxPreference;
 import android.preference.ListPreference;
 import android.preference.Preference;
@@ -66,6 +67,11 @@ public class SettingsActivity extends PreferenceActivity {
     protected void onPostCreate(Bundle savedInstanceState) {
         super.onPostCreate(savedInstanceState);
 
+        if (android.os.Build.VERSION.SDK_INT > 9) {
+            StrictMode.ThreadPolicy policy = new     StrictMode.ThreadPolicy.Builder().permitAll().build();
+            StrictMode.setThreadPolicy(policy);
+        }
+
         mPreferences = PreferenceManager.getDefaultSharedPreferences(SettingsActivity.this);
         setupSimplePreferencesScreen();
 
@@ -88,6 +94,11 @@ public class SettingsActivity extends PreferenceActivity {
         }
 
         manager.setRepeating(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis(), AlarmManager.INTERVAL_DAY, pendingIntent);
+    }
+
+    public void startNowOnce() {
+        manager = (AlarmManager)getSystemService(Context.ALARM_SERVICE);
+        manager.setExact(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(), pendingIntent);
     }
 
     public void stopAlarm() {
@@ -171,7 +182,14 @@ public class SettingsActivity extends PreferenceActivity {
         bindPreferenceSummaryToValue(findPreference("notifications_new_message_ringtone"));
         bindPreferenceSummaryToValue(findPreference("sync_frequency"));
 
-        CheckBoxPreference enablePref = (CheckBoxPreference)getPreferenceManager().findPreference("enableCheckbox");
+        Preference syncPref = (Preference)getPreferenceManager().findPreference("syncNow");
+        syncPref.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+            @Override
+            public boolean onPreferenceClick(Preference preference) {
+                startNowOnce();
+                return true;
+            }
+        });
     }
 
     /**
@@ -309,7 +327,7 @@ public class SettingsActivity extends PreferenceActivity {
     }
 
     /**
-     * This fragment shows notification preferences only. It is used when the
+     * This fragment shows notification_expanded preferences only. It is used when the
      * activity is showing a two-pane settings UI.
      */
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)

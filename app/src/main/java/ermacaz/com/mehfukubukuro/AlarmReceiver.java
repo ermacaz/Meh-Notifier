@@ -1,19 +1,32 @@
 package ermacaz.com.mehfukubukuro;
 
+import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.TaskStackBuilder;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
+import android.os.AsyncTask;
+import android.os.Build;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
+import android.widget.ImageView;
+import android.widget.RemoteViews;
 import android.widget.Toast;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import com.savagelook.android.UrlJsonAsyncTask;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 
 /**
  * Author:: ermacaz (maito:mattahamada@gmail.com)
@@ -22,6 +35,9 @@ import com.savagelook.android.UrlJsonAsyncTask;
 public class AlarmReceiver extends BroadcastReceiver {
 
     private static final String MEH_API = "6k9OGNDA6zqynKI9QIIe4rfkobKZeCBw";
+
+    private ImageView mNotifImageView;
+    private Bitmap mBitmap;
 
     @Override
     public void onReceive(Context context, Intent intent) {
@@ -44,34 +60,99 @@ public class AlarmReceiver extends BroadcastReceiver {
                 JSONObject deal = json.getJSONObject("deal");
                 String title = deal.getString("title");
                 String description = deal.getString("features");
+                JSONArray items = deal.getJSONArray("items");
+                String photoUrl = items.getJSONObject(0).getString("photo");
+
+                NotificationCompat.BigPictureStyle pictureStyle =
+                        new NotificationCompat.BigPictureStyle();
+                pictureStyle.setBigContentTitle(title);
+                pictureStyle.setSummaryText(description);
+
+                RemoteViews smallView = new RemoteViews(context.getPackageName(),
+                        R.layout.notification);
+                smallView.setTextViewText(R.id.textView,title);
+
+                RemoteViews expandedView = new RemoteViews(context.getPackageName(),
+                        R.layout.notification_expanded);
+                expandedView.setTextViewText(R.id.notificationTextView, description);
+
+                //new DownloadImageTask(expandedView, smallView).execute(photoUrl);
+
+
+                try {
+                    mBitmap = BitmapFactory.decodeStream(
+                            (InputStream) new URL(photoUrl).getContent());
+                    //mBitmap = Bitmap.createScaledBitmap(mBitmap, 100, 100, false);
+                }
+                catch(Exception e) {
+                    e.printStackTrace();
+                }
 
                 NotificationCompat.Builder mBuilder =
                         new NotificationCompat.Builder(context)
-                        .setSmallIcon(R.drawable.abc_ic_menu_paste_mtrl_am_alpha)
+                        //.setDefaults(Notification.DEFAULT_ALL)
+                        .setTicker(title)
+                        .setSmallIcon(R.drawable.ic_notification)
+                        .setLargeIcon(mBitmap)
                         .setContentTitle(title)
                         .setContentText(description);
-               // Intent resultIntent = new Intent(context, SettingsActivity.class);
+                       // .setStyle(pictureStyle);
+
                 Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://www.meh.com"));
                 PendingIntent pIntent = PendingIntent.getActivity(context,
                         0, browserIntent, PendingIntent.FLAG_UPDATE_CURRENT);
                 mBuilder.setContentIntent(pIntent);
 
-//                TaskStackBuilder stackBuilder = TaskStackBuilder.create(context);
-//                stackBuilder.addParentStack(SettingsActivity.class);
-//                PendingIntent resultPendingIntent = stackBuilder.getPendingIntent(0,
-//                        PendingIntent.FLAG_UPDATE_CURRENT);
+                Notification notification = mBuilder.build();
+                 notification.bigContentView = expandedView;
+                 //notification.contentView = smallView;
+
                 NotificationManager mNotificationManager =
                         (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-                mNotificationManager.notify(0, mBuilder.build());
+                mNotificationManager.notify(0, notification);
 
 
             }
             catch(Exception e) {
-                Toast.makeText(context, e.getMessage(), Toast.LENGTH_LONG).show();
-                Log.e("MEH", e.getMessage());
+                Toast.makeText(context, "error: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                Log.e("MEH", "error: " + e.getMessage());
             }
 
         }
 
     }
+
+//    private class DownloadImageTask extends AsyncTask<String, Void, Bitmap> {
+//
+//        private RemoteViews mExpandedView;
+//        private RemoteViews mSmallView;
+//
+//        public DownloadImageTask(RemoteViews expandedView, RemoteViews smallView) {
+//            this.mExpandedView = expandedView;
+//            this.mSmallView = smallView;
+//        }
+//
+//        protected Bitmap doInBackground(String... urls) {
+//            String urldisplay = urls[0];
+//            Bitmap bitmap = null;
+//            Bitmap scaledBitmap = null;
+//            try {
+//                InputStream in = new java.net.URL(urldisplay).openStream();
+//                bitmap = BitmapFactory.decodeStream(in);
+//                if (bitmap != null) {
+//                    scaledBitmap = Bitmap.createScaledBitmap(bitmap, 100, 100, false);
+//                }
+//            } catch (Exception e) {
+//                Log.e("Error", "image download error");
+//                Log.e("Error", e.getMessage());
+//                e.printStackTrace();
+//            }
+//            return scaledBitmap;
+//        }
+//
+//        protected void onPostExecute(Bitmap result) {
+//            //set image of your imageview
+//            mSmallView.setImageViewBitmap(R.id.imageView, result);
+//        }
+//    }
 }
