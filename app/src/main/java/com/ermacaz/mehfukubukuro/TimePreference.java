@@ -1,4 +1,4 @@
-package ermacaz.com.mehfukubukuro;
+package com.ermacaz.mehfukubukuro;
 
 import android.content.Context;
 import android.content.SharedPreferences;

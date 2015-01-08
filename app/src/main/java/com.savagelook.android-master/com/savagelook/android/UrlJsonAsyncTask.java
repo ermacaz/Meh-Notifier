@@ -115,7 +115,7 @@ public class UrlJsonAsyncTask extends AsyncTask<String, Void, JSONObject> {
 		    		}
 		    	} 
 		} catch (JSONException e) {
-			Log.e(TAG, Lazy.Ex.getStackTrace(e));
+			//Log.e(TAG, Lazy.Ex.getStackTrace(e));
 			return null;
 		}
 	    	

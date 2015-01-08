@@ -7,7 +7,7 @@
         android:summary="Enables Meh Notification"/>
 
 
-    <ermacaz.com.mehfukubukuro.TimePreference
+    <com.ermacaz.mehfukubukuro.TimePreference
         android:id="@+id/meh_update_time"
         android:key="updateTimeKey"
         android:title="Time to check Meh"

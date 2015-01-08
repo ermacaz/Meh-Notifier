@@ -1,4 +1,4 @@
-package ermacaz.com.mehfukubukuro;
+package com.ermacaz.mehfukubukuro;
 
 import android.app.Notification;
 import android.app.NotificationManager;
@@ -126,7 +126,7 @@ public class AlarmReceiver extends BroadcastReceiver {
             }
             catch(Exception e) {
                 Toast.makeText(context, "error: " + e.getMessage(), Toast.LENGTH_LONG).show();
-                Log.e("MEH", "error: " + e.getMessage());
+                //Log.e("MEH", "error: " + e.getMessage());
             }
 
         }
