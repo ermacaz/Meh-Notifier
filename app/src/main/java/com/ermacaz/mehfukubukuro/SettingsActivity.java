@@ -21,6 +21,7 @@ import android.preference.PreferenceCategory;
 import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
 import android.preference.RingtonePreference;
+import android.preference.SwitchPreference;
 import android.text.TextUtils;
 import android.widget.Toast;
 
@@ -69,11 +70,7 @@ public class SettingsActivity extends PreferenceActivity {
 
         mPreferences = PreferenceManager.getDefaultSharedPreferences(SettingsActivity.this);
         setupSimplePreferencesScreen();
-
-        //get broadcast alarm
-        Intent alarmIntent = new Intent(SettingsActivity.this, AlarmReceiver.class);
-        pendingIntent = PendingIntent.getBroadcast(SettingsActivity.this, 0, alarmIntent, PendingIntent.FLAG_CANCEL_CURRENT);
-
+        manager = (AlarmManager)getSystemService(Context.ALARM_SERVICE);
     }
 
     public void startAlarm() {
@@ -81,7 +78,10 @@ public class SettingsActivity extends PreferenceActivity {
         {
             return;
         }
-        manager = (AlarmManager)getSystemService(Context.ALARM_SERVICE);
+        Intent alarmIntent = new Intent(SettingsActivity.this, AlarmReceiver.class);
+        pendingIntent = PendingIntent.getBroadcast(SettingsActivity.this, 0, alarmIntent, PendingIntent.FLAG_CANCEL_CURRENT);
+
+
         Calendar cal = mTimePreference.getCalendar();
 
         if (cal.getTimeInMillis() < System.currentTimeMillis()) {
@@ -95,11 +95,10 @@ public class SettingsActivity extends PreferenceActivity {
      * immediate call to get Meh status.  Called form check now button.  Should not interfere with set alarm
      */
     public void startNowOnce() {
-        AlarmManager managerOnce = (AlarmManager)getSystemService(Context.ALARM_SERVICE);
         //create own that does not interfere with alarm
         Intent alarmIntent = new Intent(SettingsActivity.this, AlarmReceiver.class);
         PendingIntent pendingIntentOnce = PendingIntent.getBroadcast(SettingsActivity.this, 0, alarmIntent, PendingIntent.FLAG_CANCEL_CURRENT);
-        managerOnce.setExact(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(), pendingIntentOnce);
+         manager.setExact(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(), pendingIntentOnce);
     }
 
     public void stopAlarm() {
@@ -114,16 +113,13 @@ public class SettingsActivity extends PreferenceActivity {
      * shown.
      */
     private void setupSimplePreferencesScreen() {
-        if (!isSimplePreferences(this)) {
-            return;
-        }
         // Add 'general' preferences.
         addPreferencesFromResource(R.xml.pref_general);
         mEnabled =  mPreferences.getBoolean("enabled", false);
-        final CheckBoxPreference enableBox = (CheckBoxPreference)getPreferenceManager().findPreference("enableCheckbox");
-        enableBox.setChecked(mEnabled);
+        final SwitchPreference enableSwitch = (SwitchPreference)getPreferenceManager().findPreference("enableSwitch");
+        enableSwitch.setChecked(mEnabled);
 
-        enableBox.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+        enableSwitch.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
             @Override
             public boolean onPreferenceChange(Preference preference, Object newValue) {
                 SharedPreferences.Editor editor = mPreferences.edit();
@@ -232,45 +228,6 @@ public class SettingsActivity extends PreferenceActivity {
             }
         });
 
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public boolean onIsMultiPane() {
-        return isXLargeTablet(this) && !isSimplePreferences(this);
-    }
-
-    /**
-     * Helper method to determine if the device has an extra-large screen. For
-     * example, 10" tablets are extra-large.
-     */
-    private static boolean isXLargeTablet(Context context) {
-        return (context.getResources().getConfiguration().screenLayout
-                & Configuration.SCREENLAYOUT_SIZE_MASK) >= Configuration.SCREENLAYOUT_SIZE_XLARGE;
-    }
-
-    /**
-     * Determines whether the simplified settings UI should be shown. This is
-     * true if this is forced via {@link #ALWAYS_SIMPLE_PREFS}, or the device
-     * doesn't have newer APIs like {@link PreferenceFragment}, or the device
-     * doesn't have an extra-large screen. In these cases, a single-pane
-     * "simplified" settings UI should be shown.
-     */
-    private static boolean isSimplePreferences(Context context) {
-        return ALWAYS_SIMPLE_PREFS;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
-    public void onBuildHeaders(List<Header> target) {
-        if (!isSimplePreferences(this)) {
-            loadHeadersFromResource(R.xml.pref_headers, target);
-        }
     }
 
     /**

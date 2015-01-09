@@ -45,7 +45,6 @@ public class AlarmReceiver extends BroadcastReceiver {
 
     private void loadMehFromApi(Context context) {
         GetMehTask getMehTask = new GetMehTask(context);
-        getMehTask.setMessageLoading("Loading Meh deal...");
         getMehTask.execute("https://api.meh.com/1/current.json?apikey=" + MEH_API);
     }
 
