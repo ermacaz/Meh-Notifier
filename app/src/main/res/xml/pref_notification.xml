@@ -5,7 +5,7 @@
     <CheckBoxPreference
         android:key="notifications_sound"
         android:title="Play notification sound"
-        android:defaultValue="true" />
+        android:defaultValue="false" />
 
     <!-- Allows the user to choose a ringtone in the 'notification_expanded' category. -->
     <!-- NOTE: This preference will be enabled only when the checkbox above is checked. -->

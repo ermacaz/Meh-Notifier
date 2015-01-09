@@ -42,6 +42,7 @@ public class AlarmReceiver extends BroadcastReceiver {
     private ImageView mNotifImageView;
     private SharedPreferences mPreferences;
     private Bitmap mBitmap;
+    private Bitmap mLargeBitmap;
 
     @Override
     public void onReceive(Context context, Intent intent) {
@@ -75,6 +76,7 @@ public class AlarmReceiver extends BroadcastReceiver {
                 try {
                     mBitmap = BitmapFactory.decodeStream(
                             (InputStream) new URL(photoUrl).getContent());
+                    mLargeBitmap = Bitmap.createScaledBitmap(mBitmap, 450, 450, false);
                     mBitmap = Bitmap.createScaledBitmap(mBitmap, 150, 150, false);
                 }
                 catch(Exception e) {
@@ -98,7 +100,8 @@ public class AlarmReceiver extends BroadcastReceiver {
                 RemoteViews expandedView = new RemoteViews(context.getPackageName(),
                         R.layout.notification_expanded);
                 expandedView.setTextViewText(R.id.notificationTextView, description);
-                expandedView.setImageViewBitmap(R.id.notificationBigPictureView, mBitmap);
+                expandedView.setTextViewText(R.id.notificationTitleTextView, title);
+                expandedView.setImageViewBitmap(R.id.notificationBigPictureView, mLargeBitmap);
                 //expandedView.setTextViewText(R.id.notificationTextTitleView, title);
 
                 mPreferences = PreferenceManager.getDefaultSharedPreferences(context);
@@ -107,13 +110,13 @@ public class AlarmReceiver extends BroadcastReceiver {
                     String ringtoneStr = mPreferences.getString("ringtone", "DEFAULT_SOUND");
                     mBuilder.setSound(Uri.parse(ringtoneStr));
                 }
-                boolean enableVibrate = mPreferences.getBoolean("vibrateEnabled", false);
+                boolean enableVibrate = mPreferences.getBoolean("vibrateEnabled", true);
                 if (enableVibrate) {
                     long[] pattern = {500,500,500};
                     mBuilder.setVibrate(pattern);
                 }
 
-                Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://www.meh.com"));
+                Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://meh.com"));
                 PendingIntent pIntent = PendingIntent.getActivity(context,
                         0, browserIntent, PendingIntent.FLAG_UPDATE_CURRENT);
                 mBuilder.setContentIntent(pIntent);
