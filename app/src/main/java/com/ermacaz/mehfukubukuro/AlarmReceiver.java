@@ -9,11 +9,10 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.net.Uri;
 import android.preference.PreferenceManager;
 import android.support.v4.app.NotificationCompat;
-import android.util.Log;
-import android.widget.ImageView;
 import android.widget.RemoteViews;
 import android.widget.Toast;
 
@@ -36,6 +35,7 @@ public class AlarmReceiver extends BroadcastReceiver {
     private SharedPreferences mPreferences;
     private Bitmap mBitmap;
     private Bitmap mLargeBitmap;
+    private int mColor;
 
     @Override
     public void onReceive(Context context, Intent intent) {
@@ -65,8 +65,8 @@ public class AlarmReceiver extends BroadcastReceiver {
 //                smallView.setTextViewText(R.id.textView,title);
 
                 getImages(photoUrl);
-                RemoteViews expandedView = buildExpandedView(title, description);
                 NotificationCompat.Builder mBuilder = configureNotification(title, description);
+                RemoteViews expandedView = buildExpandedView(title, description);
 
                 Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://meh.com"));
                 PendingIntent pIntent = PendingIntent.getActivity(context,
@@ -76,6 +76,9 @@ public class AlarmReceiver extends BroadcastReceiver {
                 Notification notification = mBuilder.build();
                  notification.bigContentView = expandedView;
                  //notification.contentView = smallView;
+
+                //dismiss notificaiton on click
+                notification.flags = Notification.DEFAULT_LIGHTS | Notification.FLAG_AUTO_CANCEL;
 
                 NotificationManager mNotificationManager =
                         (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
@@ -99,6 +102,11 @@ public class AlarmReceiver extends BroadcastReceiver {
                             .setContentText(description);
 
             mPreferences = PreferenceManager.getDefaultSharedPreferences(context);
+
+            mColor = Color.parseColor(mPreferences.getString("textColor", "#ffffff"));
+//            builder.setColor(mColor);
+
+
             boolean enableSound = mPreferences.getBoolean("soundEnabled", false);
             if (enableSound) {
                 String ringtoneStr = mPreferences.getString("ringtone", "DEFAULT_SOUND");
@@ -113,11 +121,16 @@ public class AlarmReceiver extends BroadcastReceiver {
         }
 
         private RemoteViews buildExpandedView(String title, String description) {
+
             RemoteViews expandedView = new RemoteViews(context.getPackageName(),
                     R.layout.notification_expanded);
             expandedView.setTextViewText(R.id.notificationTextView, description);
             expandedView.setTextViewText(R.id.notificationTitleTextView, title);
             expandedView.setImageViewBitmap(R.id.notificationBigPictureView, mLargeBitmap);
+
+
+            expandedView.setTextColor(R.id.notificationTitleTextView, mColor);
+            expandedView.setTextColor(R.id.notificationTextView, mColor);
             return expandedView;
         }
 

@@ -1,27 +1,32 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <PreferenceCategory
+        android:title="General">
 
-    <SwitchPreference
-        android:id="@+id/enable_switch"
-        android:key="enableSwitch"
-        android:title="Enable Notification"
-        android:summary="Enables Meh Notification" />
+        <SwitchPreference
+            android:id="@+id/enable_switch"
+            android:key="enableSwitch"
+            android:title="@string/notification_switch_title"
+            android:summary="@string/notification_switch_text" />
 
-    <!--<CheckBoxPreference-->
+        <!--<CheckBoxPreference-->
         <!--android:id="@+id/enable_check_box"-->
         <!--android:key="enableCheckbox"-->
         <!--android:title="Enable Notification"-->
         <!--android:summary="Enables Meh Notification"/>-->
 
 
-    <com.ermacaz.mehfukubukuro.TimePreference
-        android:id="@+id/meh_update_time"
-        android:key="updateTimeKey"
-        android:title="Time to check Meh"
-        android:defaultValue="0"/>
+        <com.ermacaz.mehfukubukuro.TimePreference
+            android:id="@+id/meh_update_time"
+            android:key="updateTimeKey"
+            android:title="@string/default_time_title"
+            android:defaultValue="0"/>
 
-    <Preference
-        android:key="syncNow"
-        android:dependency="enableSwitch"
-        android:title="Check Now"/>
+        <Preference
+            android:key="syncNow"
+            android:dependency="enableSwitch"
+            android:title="@string/check_now_title"/>
+        </PreferenceCategory>
+
+
 
 </PreferenceScreen>

@@ -1,34 +1,30 @@
 package com.ermacaz.mehfukubukuro;
-import android.annotation.TargetApi;
 import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.res.Configuration;
 import android.media.Ringtone;
 import android.media.RingtoneManager;
-import android.media.audiofx.BassBoost;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.StrictMode;
+import android.os.Vibrator;
 import android.preference.CheckBoxPreference;
 import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.PreferenceActivity;
 import android.preference.PreferenceCategory;
-import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
 import android.preference.RingtonePreference;
 import android.preference.SwitchPreference;
 import android.text.TextUtils;
 import android.widget.Toast;
 
-import com.savagelook.android.UrlJsonAsyncTask;
+import net.margaritov.preference.colorpicker.ColorPickerPreference;
+
 
 import java.util.Calendar;
-import java.util.List;
 
 /**
  * A {@link PreferenceActivity} that presents a set of application settings. On
@@ -171,7 +167,7 @@ public class SettingsActivity extends PreferenceActivity {
         // Bind the summaries of EditText/List/Dialog/Ringtone preferences to
         // their values. When their values change, their summaries are updated
         // to reflect the new value, per the Android Design guidelines.
-        bindPreferenceSummaryToValue(findPreference("notifications_ringtone"));
+//        bindPreferenceSummaryToValue(findPreference("notifications_ringtone"));
 
 
         CheckBoxPreference soundPreference = (CheckBoxPreference)getPreferenceManager().findPreference("notifications_sound");
@@ -192,6 +188,10 @@ public class SettingsActivity extends PreferenceActivity {
                 SharedPreferences.Editor editor = mPreferences.edit();
                 editor.putBoolean("vibrateEnabled", (boolean)newValue);
                 editor.commit();
+                if ((boolean)newValue) {
+                    Vibrator vb = (Vibrator)getSystemService(Context.VIBRATOR_SERVICE);
+                    vb.vibrate(500);
+                }
                 return true;
             }
         });
@@ -227,6 +227,23 @@ public class SettingsActivity extends PreferenceActivity {
                 return true;
             }
         });
+
+        ((ColorPickerPreference)findPreference("color1")).setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+
+            @Override
+            public boolean onPreferenceChange(Preference preference, Object newValue) {
+//                String colorStr = ColorPickerPreference.convertToARGB(Integer.valueOf(String.valueOf(newValue)));
+                String colorStr = ColorPickerPreference.convertToRGB(Integer.valueOf(String.valueOf(newValue)));
+                preference.setSummary(colorStr);
+                SharedPreferences.Editor editor = mPreferences.edit();
+                editor.putString("textColor", colorStr);
+                editor.commit();
+                return true;
+            }
+
+        });
+
+
 
     }
 

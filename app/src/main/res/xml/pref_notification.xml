@@ -4,7 +4,7 @@
          when checked/unchecked. -->
     <CheckBoxPreference
         android:key="notifications_sound"
-        android:title="Play notification sound"
+        android:title="@string/enable_sound_title"
         android:defaultValue="false" />
 
     <!-- Allows the user to choose a ringtone in the 'notification_expanded' category. -->
@@ -22,5 +22,13 @@
         android:key="notifications_vibrate"
         android:title="@string/pref_title_vibrate"
         android:defaultValue="true" />
+
+    <net.margaritov.preference.colorpicker.ColorPickerPreference
+        android:key="color1"
+        android:title="@string/color_title"
+        android:summary="@string/color_summary"
+        android:defaultValue="@integer/COLOR_BLACK"
+        />
+
 
 </PreferenceScreen>
