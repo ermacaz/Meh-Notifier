@@ -54,35 +54,47 @@ public class AlarmReceiver extends BroadcastReceiver {
         @Override
         protected void onPostExecute(JSONObject json) {
             try {
-                JSONObject deal = json.getJSONObject("deal");
-                String title = deal.getString("title");
-                String description = deal.getString("features");
-                JSONArray items = deal.getJSONArray("items");
-                String photoUrl = items.getJSONObject(0).getString("photo");
+                if (json.has("success")) {
+                    Toast.makeText(context, "Could not contact meh.com Server may be busy", Toast.LENGTH_LONG).show();
+                }
+                else {
+                    JSONObject deal = json.getJSONObject("deal");
+                    String title = deal.getString("title");
+                    String description = deal.getString("features");
+                    JSONArray items = deal.getJSONArray("items");
+                    String photoUrl = items.getJSONObject(0).getString("photo");
+                    String price = items.getJSONObject(0).getString("price");
 
 //                RemoteViews smallView = new RemoteViews(context.getPackageName(),
 //                R.layout.notification);
 //                smallView.setTextViewText(R.id.textView,title);
 
-                getImages(photoUrl);
-                NotificationCompat.Builder mBuilder = configureNotification(title, description);
-                RemoteViews expandedView = buildExpandedView(title, description);
+                    getImages(photoUrl);
+                    NotificationCompat.Builder mBuilder = configureNotification(title, description);
+                    RemoteViews expandedView = buildExpandedView(title, description, price);
 
-                Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://meh.com"));
-                PendingIntent pIntent = PendingIntent.getActivity(context,
-                        0, browserIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-                mBuilder.setContentIntent(pIntent);
+                    Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://meh.com"));
+                    PendingIntent pIntent = PendingIntent.getActivity(context,
+                            0, browserIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+                    mBuilder.setContentIntent(pIntent);
 
-                Notification notification = mBuilder.build();
-                 notification.bigContentView = expandedView;
-                 //notification.contentView = smallView;
+                    Notification notification = mBuilder.build();
+                    notification.bigContentView = expandedView;
+                    //notification.contentView = smallView;
 
-                //dismiss notificaiton on click
-                notification.flags = Notification.DEFAULT_LIGHTS | Notification.FLAG_AUTO_CANCEL;
+                    //dismiss notificaiton on click
+                    notification.flags = Notification.DEFAULT_LIGHTS | Notification.FLAG_AUTO_CANCEL;
 
-                NotificationManager mNotificationManager =
-                        (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-                mNotificationManager.notify(0, notification);
+                    //enable vibrate
+                    boolean enableVibrate = mPreferences.getBoolean("vibrateEnabled", true);
+                    if (enableVibrate) {
+                        notification.defaults |= Notification.DEFAULT_VIBRATE;
+                    }
+                    
+                    NotificationManager mNotificationManager =
+                            (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+                    mNotificationManager.notify(0, notification);
+                }
             }
             catch(Exception e) {
                 Toast.makeText(context, "error: " + e.getMessage(), Toast.LENGTH_LONG).show();
@@ -112,20 +124,15 @@ public class AlarmReceiver extends BroadcastReceiver {
                 String ringtoneStr = mPreferences.getString("ringtone", "DEFAULT_SOUND");
                 builder.setSound(Uri.parse(ringtoneStr));
             }
-            boolean enableVibrate = mPreferences.getBoolean("vibrateEnabled", true);
-            if (enableVibrate) {
-                long[] pattern = {500,500,500};
-                builder.setVibrate(pattern);
-            }
             return builder;
         }
 
-        private RemoteViews buildExpandedView(String title, String description) {
+        private RemoteViews buildExpandedView(String title, String description, String price) {
 
             RemoteViews expandedView = new RemoteViews(context.getPackageName(),
                     R.layout.notification_expanded);
             expandedView.setTextViewText(R.id.notificationTextView, description);
-            expandedView.setTextViewText(R.id.notificationTitleTextView, title);
+            expandedView.setTextViewText(R.id.notificationTitleTextView, title + " ($" + price + ")");
             expandedView.setImageViewBitmap(R.id.notificationBigPictureView, mLargeBitmap);
 
 

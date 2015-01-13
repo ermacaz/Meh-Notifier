@@ -27,7 +27,7 @@
         android:key="color1"
         android:title="@string/color_title"
         android:summary="@string/color_summary"
-        android:defaultValue="@integer/COLOR_BLACK"
+        android:defaultValue="@integer/COLOR_WHITE"
         />
 
 
