@@ -18,6 +18,8 @@
     <string name="pref_title_ringtone">Ringtone</string>
     <string name="pref_ringtone_silent">Silent</string>
     <string name="pref_title_vibrate">Vibrate</string>
+    <string name="widget_update_title">Update Widget</string>
+    <string name="widget_color_summary">Color of text in widget</string>
 
 
 </resources>

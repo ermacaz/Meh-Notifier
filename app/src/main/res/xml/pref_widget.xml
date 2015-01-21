@@ -1,0 +1,26 @@
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <PreferenceCategory
+        android:title="Widget">
+
+        <com.ermacaz.mehfukubukuro.TimePreference
+            android:id="@+id/widget_update_time"
+            android:key="widgetUpdateTimeKey"
+            android:title="@string/default_time_title"
+            android:defaultValue="0"/>
+
+        <net.margaritov.preference.colorpicker.ColorPickerPreference
+            android:key="color2"
+            android:title="@string/color_title"
+            android:summary="@string/widget_color_summary"
+            android:defaultValue="@integer/COLOR_WHITE"
+            />
+
+        <Preference
+            android:key="syncWidgetNow"
+            android:title="@string/check_now_title"/>
+
+    </PreferenceCategory>
+
+
+
+</PreferenceScreen>

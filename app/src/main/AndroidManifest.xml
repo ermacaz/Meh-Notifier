@@ -21,6 +21,7 @@
         </activity>
 
         <receiver android:name=".AlarmReceiver"/>
+        <receiver android:name=".WidgetAlarmReceiver"/>
         <receiver android:name=".DefaultWidget"
             android:icon="@drawable/ic_notification"
             android:label="Meh Widget">

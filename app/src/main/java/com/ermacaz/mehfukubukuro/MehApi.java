@@ -3,6 +3,7 @@ package com.ermacaz.mehfukubukuro;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.appwidget.AppWidgetManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -39,7 +40,9 @@ public class MehApi {
     private Bitmap mBitmap;
     private Bitmap mLargeBitmap;
     private int mColor;
+    private int mWidgetColor;
     private RemoteViews mWidgetView;
+    private int[] mAppWidgetIds;
 
     public MehApi(Context context) {
         mContext = context;
@@ -62,8 +65,9 @@ public class MehApi {
         getMehNotification.execute("https://api.meh.com/1/current.json?apikey=" + API_KEY);
     }
 
-    public void updateWidget(RemoteViews view) {
+    public void updateWidget(int[] appWidgetIds, RemoteViews view) {
         mWidgetView = view;
+        mAppWidgetIds = appWidgetIds;
         GetMehWidget getMehWidget= new GetMehWidget(mContext);
         getMehWidget.execute("https://api.meh.com/1/current.json?apikey=" + API_KEY);
     }
@@ -87,12 +91,20 @@ public class MehApi {
                     String price = items.getJSONObject(0).getString("price");
                     getImages(photoUrl);
 
+                    mPreferences = PreferenceManager.getDefaultSharedPreferences(context);
+                    mWidgetColor = Color.parseColor(mPreferences.getString("widgetTextColor", "#ffffff"));
+
+
                     mWidgetView.setTextViewText(R.id.widgetTextView, description);
                     mWidgetView.setTextViewText(R.id.widgetTitleTextView, title + " ($" + price + ")");
-                    mWidgetView.setImageViewBitmap(R.id.notificationBigPictureView, mLargeBitmap);
-                    mWidgetView.setTextColor(R.id.notificationTitleTextView, mColor);
-                    mWidgetView.setTextColor(R.id.notificationTextView, mColor);
+                    mWidgetView.setImageViewBitmap(R.id.widgetBigPictureView, mLargeBitmap);
+                    mWidgetView.setTextColor(R.id.widgetTitleTextView, mWidgetColor);
+                    mWidgetView.setTextColor(R.id.widgetTextView, mWidgetColor);
 
+                    AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(mContext);
+                    for (int i = 0; i < mAppWidgetIds.length; i++) {
+                        appWidgetManager.updateAppWidget(mAppWidgetIds[i], mWidgetView);
+                    }
 
                 }
             } catch (Exception e) {

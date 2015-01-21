@@ -1,6 +1,8 @@
 package com.ermacaz.mehfukubukuro;
 import android.app.AlarmManager;
 import android.app.PendingIntent;
+import android.appwidget.AppWidgetManager;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -19,6 +21,7 @@ import android.preference.PreferenceManager;
 import android.preference.RingtonePreference;
 import android.preference.SwitchPreference;
 import android.text.TextUtils;
+import android.widget.RemoteViews;
 import android.widget.Toast;
 
 import net.margaritov.preference.colorpicker.ColorPickerPreference;
@@ -51,6 +54,7 @@ public class SettingsActivity extends PreferenceActivity {
     private SharedPreferences mPreferences;
     private boolean mEnabled;
     private TimePreference mTimePreference;
+    private TimePreference mWidgetTimePref;
 
 
 
@@ -111,24 +115,22 @@ public class SettingsActivity extends PreferenceActivity {
     private void setupSimplePreferencesScreen() {
         // Add 'general' preferences.
         addPreferencesFromResource(R.xml.pref_general);
-        mEnabled =  mPreferences.getBoolean("enabled", false);
-        final SwitchPreference enableSwitch = (SwitchPreference)getPreferenceManager().findPreference("enableSwitch");
+        mEnabled = mPreferences.getBoolean("enabled", false);
+        final SwitchPreference enableSwitch = (SwitchPreference) getPreferenceManager().findPreference("enableSwitch");
         enableSwitch.setChecked(mEnabled);
 
         enableSwitch.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
             @Override
             public boolean onPreferenceChange(Preference preference, Object newValue) {
                 SharedPreferences.Editor editor = mPreferences.edit();
-                editor.putBoolean("enabled", (boolean)newValue);
+                editor.putBoolean("enabled", (boolean) newValue);
                 editor.commit();
-                mEnabled = (boolean)newValue;
-                if (mEnabled)
-                {
+                mEnabled = (boolean) newValue;
+                if (mEnabled) {
                     startAlarm();
                     Toast.makeText(getApplicationContext(), "Notification on", Toast.LENGTH_SHORT).show();
                 }
-                if (!mEnabled)
-                {
+                if (!mEnabled) {
                     stopAlarm();
                     Toast.makeText(getApplicationContext(), "Notification off", Toast.LENGTH_SHORT).show();
                 }
@@ -137,7 +139,7 @@ public class SettingsActivity extends PreferenceActivity {
         });
 
 
-        mTimePreference = (TimePreference)getPreferenceManager().findPreference("updateTimeKey");
+        mTimePreference = (TimePreference) getPreferenceManager().findPreference("updateTimeKey");
         mTimePreference.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
             @Override
             public boolean onPreferenceChange(Preference preference, Object newValue) {
@@ -170,38 +172,38 @@ public class SettingsActivity extends PreferenceActivity {
 //        bindPreferenceSummaryToValue(findPreference("notifications_ringtone"));
 
 
-        CheckBoxPreference soundPreference = (CheckBoxPreference)getPreferenceManager().findPreference("notifications_sound");
+        CheckBoxPreference soundPreference = (CheckBoxPreference) getPreferenceManager().findPreference("notifications_sound");
         soundPreference.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
             @Override
             public boolean onPreferenceChange(Preference preference, Object newValue) {
                 SharedPreferences.Editor editor = mPreferences.edit();
-                editor.putBoolean("soundEnabled", (boolean)newValue);
+                editor.putBoolean("soundEnabled", (boolean) newValue);
                 editor.commit();
                 return true;
             }
         });
 
-        CheckBoxPreference vibratePreference = (CheckBoxPreference)getPreferenceManager().findPreference("notifications_vibrate");
+        CheckBoxPreference vibratePreference = (CheckBoxPreference) getPreferenceManager().findPreference("notifications_vibrate");
         vibratePreference.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
             @Override
             public boolean onPreferenceChange(Preference preference, Object newValue) {
                 SharedPreferences.Editor editor = mPreferences.edit();
-                editor.putBoolean("vibrateEnabled", (boolean)newValue);
+                editor.putBoolean("vibrateEnabled", (boolean) newValue);
                 editor.commit();
-                if ((boolean)newValue) {
-                    Vibrator vb = (Vibrator)getSystemService(Context.VIBRATOR_SERVICE);
+                if ((boolean) newValue) {
+                    Vibrator vb = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
                     vb.vibrate(500);
                 }
                 return true;
             }
         });
 
-        RingtonePreference ringtonePreference = (RingtonePreference)getPreferenceManager().findPreference("notifications_ringtone");
+        RingtonePreference ringtonePreference = (RingtonePreference) getPreferenceManager().findPreference("notifications_ringtone");
         ringtonePreference.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
             @Override
             public boolean onPreferenceChange(Preference preference, Object newValue) {
                 SharedPreferences.Editor editor = mPreferences.edit();
-                editor.putString("ringtone", (String)newValue);
+                editor.putString("ringtone", (String) newValue);
                 editor.commit();
 
                 //update ui
@@ -228,7 +230,7 @@ public class SettingsActivity extends PreferenceActivity {
             }
         });
 
-        ((ColorPickerPreference)findPreference("color1")).setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+        ((ColorPickerPreference) findPreference("color1")).setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
 
             @Override
             public boolean onPreferenceChange(Preference preference, Object newValue) {
@@ -243,8 +245,77 @@ public class SettingsActivity extends PreferenceActivity {
 
         });
 
+        //add widget preferences
+        addPreferencesFromResource(R.xml.pref_widget);
+        mWidgetTimePref = (TimePreference) getPreferenceManager().findPreference("widgetUpdateTimeKey");
+        mWidgetTimePref.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+            @Override
+            public boolean onPreferenceChange(Preference preference, Object newValue) {
+                SharedPreferences.Editor editor = mPreferences.edit();
+                editor.putString("widget_lookup_time", mWidgetTimePref.getSummary().toString());
+                editor.commit();
+                startWidgetAlarm();
+                return true;
+            }
+        });
+
+        ((ColorPickerPreference) findPreference("color2")).setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+
+            @Override
+            public boolean onPreferenceChange(Preference preference, Object newValue) {
+//                String colorStr = ColorPickerPreference.convertToARGB(Integer.valueOf(String.valueOf(newValue)));
+                String colorStr = ColorPickerPreference.convertToRGB(Integer.valueOf(String.valueOf(newValue)));
+                preference.setSummary(colorStr);
+                SharedPreferences.Editor editor = mPreferences.edit();
+                editor.putString("widgetTextColor", colorStr);
+                editor.commit();
+                updateMyWidget();
+                return true;
+            }
+
+        });
+
+        Preference syncWidgetPref = getPreferenceManager().findPreference("syncWidgetNow");
+        syncWidgetPref.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+            @Override
+            public boolean onPreferenceClick(Preference preference) {
+                updateMyWidget();
+                return true;
+            }
+        });
 
 
+    }
+
+    private void startWidgetAlarm() {
+        ComponentName cn = new ComponentName(getApplicationContext(), DefaultWidget.class);
+        AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(getApplicationContext());
+        int[] appWidgetIds = appWidgetManager.getAppWidgetIds(cn);
+        if (appWidgetIds.length == 0)
+        {
+            return;
+        }
+        Intent alarmIntent = new Intent(SettingsActivity.this, WidgetAlarmReceiver.class);
+        pendingIntent = PendingIntent.getBroadcast(SettingsActivity.this, 0, alarmIntent, PendingIntent.FLAG_CANCEL_CURRENT);
+
+
+        Calendar cal = mWidgetTimePref.getCalendar();
+
+        if (cal.getTimeInMillis() < System.currentTimeMillis()) {
+            cal.add(Calendar.DAY_OF_YEAR, 1);
+        }
+
+        manager.setRepeating(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis(), AlarmManager.INTERVAL_DAY, pendingIntent);
+    }
+
+    private void updateMyWidget() {
+        ComponentName cn = new ComponentName(getApplicationContext(), DefaultWidget.class);
+        AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(getApplicationContext());
+        int[] appWidgetIds = appWidgetManager.getAppWidgetIds(cn);
+        RemoteViews views = new RemoteViews(getApplicationContext().getPackageName(),
+                R.layout.notification_widget);
+        MehApi mehApi = new MehApi(getApplicationContext());
+        mehApi.updateWidget(appWidgetIds, views);
     }
 
     /**
