@@ -147,11 +147,12 @@ public class MehApi {
                     //notification.contentView = smallView;
 
                     //dismiss notificaiton on click
-                    notification.flags = Notification.DEFAULT_LIGHTS | Notification.FLAG_AUTO_CANCEL;
+//                    notification.flags = Notification.DEFAULT_LIGHTS | Notification.FLAG_AUTO_CANCEL;
 
                     //enable vibrate
                     boolean enableVibrate = mPreferences.getBoolean("vibrateEnabled", true);
                     if (enableVibrate) {
+                        mBuilder.setVibrate(new long[] { 1000, 1000});
                         notification.defaults |= Notification.DEFAULT_VIBRATE;
                     }
 

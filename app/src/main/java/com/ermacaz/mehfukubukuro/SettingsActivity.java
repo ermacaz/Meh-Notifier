@@ -191,8 +191,8 @@ public class SettingsActivity extends PreferenceActivity {
                 editor.putBoolean("vibrateEnabled", (boolean) newValue);
                 editor.commit();
                 if ((boolean) newValue) {
-                    Vibrator vb = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
-                    vb.vibrate(500);
+//                    Vibrator vb = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+//                    vb.vibrate(500);
                 }
                 return true;
             }
